@@ -1,0 +1,5 @@
+{
+  "name": "Copy of Copy of Genealogy Explorer",
+  "description": "An application that simulates a genetic ancestry analysis. Users can upload a photo, enter their name, and go through a mock payment process to receive a generated ancestry report powered by AI.",
+  "requestFramePermissions": []
+}
