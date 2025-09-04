@@ -28,20 +28,23 @@ export async function generateAncestryReport(userData: UserData): Promise<Ancest
   };
 
   let prompt = `
-    Analyze the facial features in the provided image to generate a plausible, detailed genetic ancestry report for the person shown.
+    Analyze the facial features from the provided image to generate a plausible, detailed genetic ancestry report for the person shown.
     The report should be tailored to features suggesting Middle Eastern origins.
-    It must include percentage breakdowns for different regions (e.g., Arabian Peninsula, North Africa, Levant, Anatolia, Persia, etc.),
-    some interesting historical context for these major regions, and a brief, engaging summary.
+    The report must include:
+    1. A brief, engaging summary.
+    2. A percentage breakdown for different regions (e.g., Arabian Peninsula, North Africa, Levant, Anatolia, Persia). For each region, you MUST provide a confidence level (using only one of these exact Arabic words: 'مرتفع'، 'متوسط'، 'منخفض') based on the clarity of the visual markers.
+    3. Interesting and detailed historical context for the top 2-3 major regions identified in the breakdown.
+
     Ensure the percentages add up to 100.
     The response must be in Arabic.
   `;
 
   if (userData.includeRegions && userData.includeRegions.length > 0) {
-    prompt += `\nFocus the analysis and percentage breakdown primarily on these regions: ${userData.includeRegions.join(', ')}. While you can include other minor regions, these should be the main components.`;
+    prompt += `\nCRITICAL: Prioritize the analysis, percentage breakdown, and historical context on the following user-specified regions: ${userData.includeRegions.join('، ')}. Provide especially detailed historical context for these specific regions if they appear in the results. These regions are the user's main interest.`;
   }
 
   if (userData.excludeRegions && userData.excludeRegions.length > 0) {
-    prompt += `\nStrictly exclude these regions from the report: ${userData.excludeRegions.join(', ')}. Do not list them in the breakdown or mention them.`;
+    prompt += `\nCRITICAL: Strictly exclude these regions from the entire report: ${userData.excludeRegions.join('، ')}. Do not list them in the breakdown or mention them in the summary or historical context.`;
   }
 
   const textPart = { text: prompt };
@@ -55,7 +58,7 @@ export async function generateAncestryReport(userData: UserData): Promise<Ancest
       },
       regionalBreakdown: {
         type: Type.ARRAY,
-        description: "تفصيل النسب المئوية للمناطق الجينية باللغة العربية.",
+        description: "تفصيل النسب المئوية للمناطق الجينية باللغة العربية مع مستوى الثقة.",
         items: {
           type: Type.OBJECT,
           properties: {
@@ -67,8 +70,12 @@ export async function generateAncestryReport(userData: UserData): Promise<Ancest
               type: Type.NUMBER,
               description: "النسبة المئوية للأصل من هذه المنطقة.",
             },
+            confidence: {
+              type: Type.STRING,
+              description: "مستوى الثقة في النسبة المئوية ('مرتفع'، 'متوسط'، 'منخفض') باللغة العربية."
+            }
           },
-          required: ["region", "percentage"],
+          required: ["region", "percentage", "confidence"],
         },
       },
       historicalContexts: {

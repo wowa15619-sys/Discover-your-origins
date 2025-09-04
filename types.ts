@@ -15,6 +15,7 @@ export interface UserData {
 export interface AncestryRegion {
   region: string;
   percentage: number;
+  confidence: string;
 }
 
 export interface HistoricalContext {

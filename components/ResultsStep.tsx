@@ -1,6 +1,6 @@
 import React from 'react';
 import { AncestryReport, UserData } from '../types';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface ResultsStepProps {
   report: AncestryReport;
@@ -12,9 +12,11 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'
 
 const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0].payload;
       return (
-        <div className="bg-gray-800 p-2 border border-gray-600 rounded-md">
-          <p className="text-white">{`${payload[0].name} : ${payload[0].value}%`}</p>
+        <div className="bg-gray-800 p-2 border border-gray-600 rounded-md shadow-lg text-sm">
+          <p className="text-white font-bold">{`${data.region} : ${data.percentage}%`}</p>
+          <p className="text-gray-300">{`مستوى الثقة: ${data.confidence}`}</p>
         </div>
       );
     }
@@ -39,28 +41,55 @@ const ResultsStep: React.FC<ResultsStepProps> = ({ report, userData, onReset }) 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div className="p-6 bg-gray-900/50 rounded-lg">
             <h3 className="text-2xl font-bold mb-4 text-center text-teal-300">التوزيع الجيني</h3>
-            <div style={{ width: '100%', height: 300 }}>
-                <ResponsiveContainer aria-label="Pie chart showing the user's genetic breakdown by region">
-                    <PieChart>
-                        <Pie
-                            data={report.regionalBreakdown}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            outerRadius={100}
-                            fill="#8884d8"
-                            dataKey="percentage"
-                            nameKey="region"
-                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                            >
-                            {report.regionalBreakdown.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                        <Legend />
-                    </PieChart>
-                </ResponsiveContainer>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <div style={{ width: '100%', height: 250 }}>
+                    <ResponsiveContainer aria-label="Pie chart showing the user's genetic breakdown by region">
+                        <PieChart>
+                            <Pie
+                                data={report.regionalBreakdown}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                innerRadius={40}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                paddingAngle={5}
+                                dataKey="percentage"
+                                nameKey="region"
+                                >
+                                {report.regionalBreakdown.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip content={<CustomTooltip />} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+                <div className="text-sm">
+                    <ul className="space-y-2">
+                        {report.regionalBreakdown.map((item, index) => {
+                            let confidenceClasses = 'text-gray-400 border-gray-500';
+                            if (item.confidence === 'مرتفع') confidenceClasses = 'text-green-400 border-green-500';
+                            else if (item.confidence === 'متوسط') confidenceClasses = 'text-yellow-400 border-yellow-500';
+                            else if (item.confidence === 'منخفض') confidenceClasses = 'text-red-400 border-red-500';
+
+                            return (
+                                <li key={index} className="flex justify-between items-center bg-gray-800/50 p-2 rounded-md">
+                                    <div className="flex items-center">
+                                        <span className="w-3 h-3 rounded-full ml-3 rtl:mr-3 rtl:ml-0" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
+                                        <span className="font-semibold text-gray-200">{item.region}</span>
+                                    </div>
+                                    <div className="flex items-center gap-x-3">
+                                        <span className={`text-xs font-bold w-16 text-center py-0.5 rounded-full border ${confidenceClasses}`}>
+                                            {item.confidence}
+                                        </span>
+                                        <span className={`font-mono text-lg text-white w-12 text-left`}>{item.percentage}%</span>
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
             </div>
         </div>
 
